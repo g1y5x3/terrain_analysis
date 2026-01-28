@@ -1,0 +1,14 @@
+/**:
+  ros__parameters:
+    scan_topic: "/cloud_registered_body"
+    terrain_topic: "/terrain_cloud"
+    vehicle_height: 0.75
+    ceiling_height_threshold: 1.5
+    global_map:
+      map_frame_id: "map"
+      map_leaf_size: 0.1
+      use_pmf: true
+      pmf_max_window_size: 6.0
+      pmf_slope: 2.5
+      pmf_initial_distance: 0.8
+      pmf_max_distance: 1.0
