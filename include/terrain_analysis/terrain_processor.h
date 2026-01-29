@@ -35,18 +35,23 @@ private:
   // Parameters
   std::string map_path_;
   std::string map_frame_id_;
-  std::string scan_topic_;
-  std::string terrain_topic_;
+  // std::string scan_topic_;
+  // std::string terrain_topic_;
   double map_leaf_size_;
-  double vehicle_height_;
-  double ceiling_height_threshold_;
-  bool use_pmf_; 
 
   // PMF Parameters
+  bool use_pmf_; 
   double pmf_max_window_size_;
   double pmf_slope_;
   double pmf_initial_distance_;
   double pmf_max_distance_;
+
+  // Ceiling Filter Parameter
+  double ceiling_height_threshold_;
+
+  // Operator FOV Filter Parameters
+  bool filter_operator_fov_;
+  double operator_fov_deg_;
 
   // Publisher
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_global_map_; // For visual/debug/NDT
