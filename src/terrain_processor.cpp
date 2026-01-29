@@ -9,7 +9,7 @@ TerrainProcessor::TerrainProcessor() : Node("terrain_processor_node")
 
   // Parameters
   this->declare_parameter<std::string>("map_path", "");
-  this->declare_parameter<std::string>("global_cloud.map_frame_id", "map");
+  this->declare_parameter<std::string>("map_frame_id", "map");
   this->declare_parameter<double>("global_cloud.map_leaf_size", 0.1);
   this->declare_parameter<bool>("terrain_cloud.use_pmf", true);
   this->declare_parameter<double>("terrain_cloud.pmf_max_window_size", 6.0);
@@ -21,7 +21,7 @@ TerrainProcessor::TerrainProcessor() : Node("terrain_processor_node")
   this->declare_parameter<double>("terrain_cloud.operator_fov_deg", 60.0);
 
   this->get_parameter("map_path", this->map_path_);
-  this->get_parameter("global_cloud.map_frame_id", this->map_frame_id_);
+  this->get_parameter("map_frame_id", this->map_frame_id_);
   this->get_parameter("global_cloud.map_leaf_size", this->map_leaf_size_);
   this->get_parameter("terrain_cloud.use_pmf", this->use_pmf_);
   this->get_parameter("terrain_cloud.pmf_max_window_size", this->pmf_max_window_size_);
