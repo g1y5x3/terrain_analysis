@@ -11,7 +11,11 @@ def generate_launch_description():
     # Arguments
     map_path_arg = DeclareLaunchArgument(
         'map_path',
-        default_value='',
+        default_value=os.path.join(
+            get_package_share_directory('terrain_analysis'), 
+            'pcd', 
+            'map.pcd'
+        ),
         description='Path to the global PCD map file'
     )
 
