@@ -11,6 +11,7 @@ TerrainProcessor::TerrainProcessor() : Node("terrain_processor_node")
   this->declare_parameter<std::string>("map_path", "");
   this->declare_parameter<std::string>("map_frame_id", "map");
   this->declare_parameter<double>("global_cloud.map_leaf_size", 0.1);
+  this->declare_parameter<double>("global_cloud.publish_leaf_size", 0.2);
   this->declare_parameter<bool>("terrain_cloud.use_pmf", true);
   this->declare_parameter<double>("terrain_cloud.pmf_max_window_size", 6.0);
   this->declare_parameter<double>("terrain_cloud.pmf_slope", 2.5);
@@ -23,6 +24,7 @@ TerrainProcessor::TerrainProcessor() : Node("terrain_processor_node")
   this->get_parameter("map_path", this->map_path_);
   this->get_parameter("map_frame_id", this->map_frame_id_);
   this->get_parameter("global_cloud.map_leaf_size", this->map_leaf_size_);
+  this->get_parameter("global_cloud.publish_leaf_size", this->publish_leaf_size_);
   this->get_parameter("terrain_cloud.use_pmf", this->use_pmf_);
   this->get_parameter("terrain_cloud.pmf_max_window_size", this->pmf_max_window_size_);
   this->get_parameter("terrain_cloud.pmf_slope", this->pmf_slope_);
@@ -78,11 +80,34 @@ void TerrainProcessor::loadAndFilterMap()
   }
   RCLCPP_INFO(this->get_logger(), "Map size after downsampling: %zu", downsampled_map->size());
 
+  // Store the fine-resolution cloud for localization (e.g. NDT)
+  *this->global_map_cloud_ = *downsampled_map;
+  RCLCPP_INFO(this->get_logger(), "Stored %zu points at %.2fm for localization.",
+              this->global_map_cloud_->size(), this->map_leaf_size_);
+
+  // Downsample again at coarser resolution for publishing (lighter for Zenoh streaming)
+  pcl::PointCloud<PointType>::Ptr publish_map(new pcl::PointCloud<PointType>());
+  if (this->publish_leaf_size_ <= this->map_leaf_size_) {
+    RCLCPP_WARN(this->get_logger(),
+      "publish_leaf_size (%.2f) <= map_leaf_size (%.2f). "
+      "Publishing at map resolution, which may cause network delay.",
+      this->publish_leaf_size_, this->map_leaf_size_);
+    publish_map = downsampled_map;
+  } else {
+    RCLCPP_INFO(this->get_logger(), "Downsampling for publish (leaf size: %.2f)...", this->publish_leaf_size_);
+    pcl::VoxelGrid<PointType> voxel_pub;
+    voxel_pub.setLeafSize(this->publish_leaf_size_, this->publish_leaf_size_, this->publish_leaf_size_);
+    voxel_pub.setInputCloud(downsampled_map);
+    voxel_pub.filter(*publish_map);
+  }
+  RCLCPP_INFO(this->get_logger(), "Publishing %zu points at %.2fm resolution.",
+              publish_map->size(), this->publish_leaf_size_);
+
   sensor_msgs::msg::PointCloud2 full_msg;
-  pcl::toROSMsg(*downsampled_map, full_msg);
+  pcl::toROSMsg(*publish_map, full_msg);
   full_msg.header.frame_id = this->map_frame_id_;
   full_msg.header.stamp = this->now();
-  this->pub_global_map_->publish(full_msg); // For NDT / Visualization
+  this->pub_global_map_->publish(full_msg);
 
   RCLCPP_INFO(this->get_logger(), "Published static map.");
 }

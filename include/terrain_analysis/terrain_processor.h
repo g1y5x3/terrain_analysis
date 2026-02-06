@@ -38,6 +38,7 @@ private:
   // std::string scan_topic_;
   // std::string terrain_topic_;
   double map_leaf_size_;
+  double publish_leaf_size_;
 
   // PMF Parameters
   bool use_pmf_; 
